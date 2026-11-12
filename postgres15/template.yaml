@@ -18,6 +18,9 @@ spec:
         - gitlab_host
         - rhdh_gitops_namespace
         - rhdh_gitops_project
+        - db_size
+        - enable_backup
+        - db_user
       properties:
         component_id:
           title: Name
@@ -47,6 +50,35 @@ spec:
           title: GitOps Project
           type: string
           description: Argo CD / GitOps project name
+        db_size:
+          title: Database Size
+          type: string
+          description: Storage size for the Postgres database
+          default: 10Gi
+          enum:
+            - 5Gi
+            - 10Gi
+            - 20Gi
+            - 50Gi
+            - 100Gi
+          enumNames:
+            - 5 Gi
+            - 10 Gi
+            - 20 Gi
+            - 50 Gi
+            - 100 Gi
+        enable_backup:
+          title: Enable Backup
+          type: boolean
+          description: Whether to configure database backups
+          default: true
+        db_user:
+          title: Default Database User
+          type: string
+          description: Name of the default Postgres user to create
+          default: appuser
+          pattern: '^[a-z_][a-z0-9_]{0,62}$'
+          ui:autofocus: false
   steps:
     - id: template-gitops-deployment
       name: Generating Deployment Resources
@@ -63,6 +95,9 @@ spec:
           gitops_project: ${{ parameters.rhdh_gitops_project }}
           git_host: ${{ parameters.gitlab_host }}
           git_destination: ${{ user.entity.metadata.name }}/${{ parameters.component_id }}-gitops
+          db_size: ${{ parameters.db_size }}
+          enable_backup: ${{ parameters.enable_backup }}
+          db_user: ${{ parameters.db_user }}
         targetPath: ./${{ user.entity.metadata.name }}-${{ parameters.component_id }}-gitops
 
     - id: publish
